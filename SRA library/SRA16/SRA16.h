@@ -24,7 +24,20 @@
 #include<avr/eeprom.h>
 #include<IO16.h>
 #include <inttypes.h>
+#include <avr/wdt.h>
 /* E N D S */
+
+// DEFINITIONS ::
+
+#define WDT_INTERVAL_16 0
+#define WDT_INTERVAL_32 1
+#define WDT_INTERVAL_64 2
+#define WDT_INTERVAL_128 3
+#define WDT_INTERVAL_256 4
+#define WDT_INTERVAL_512 5
+#define WDT_INTERVAL_1024 6
+#define WDT_INTERVAL_2048 7
+
 
 unsigned char min[sensor_num],	max[sensor_num],	threshold[sensor_num];
 unsigned char sensorbyte=0;
@@ -692,4 +705,70 @@ void retrieve_threshold(void)
 		eeprom_addr++;
 	}
 }
+
+//:: WATCHDOG TIMER FUNCTIONS ::
+void wdtEnable(int intervalMS)
+{
+	//Ensure that WDT starts cleared ::
+	wdt_reset();
+	
+	//WDT Enabled ::
+	WDTCR |= (1 << WDE);
+	
+	//Setting the WD Prescaler values according to interval ::
+	switch(intervalMS)
+	{
+		case WDT_INTERVAL_16:
+			WDTCR &= ~((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
+			break;
+		
+		case WDT_INTERVAL_32:
+			WDTCR &= ~((1 << WDP2) | (1 << WDP1));
+			WDTCR |= (1 << WDP0);
+			break;
+		
+		case WDT_INTERVAL_64:
+			WDTCR &= ~((1 << WDP2) | (1 << WDP0));
+			WDTCR |= (1 << WDP1);
+			break;
+		
+		case WDT_INTERVAL_128:
+			WDTCR &= ~(1 << WDP2);
+			WDTCR |= (1 << WDP1) | (1 << WDP0);
+			break;
+		
+		case WDT_INTERVAL_256:
+			WDTCR &= ~((1 << WDP1) | (1 << WDP0));
+			WDTCR |= (1 << WDP2);
+			break;
+		
+		case WDT_INTERVAL_512:
+			WDTCR &= ~(1 << WDP1);
+			WDTCR |= (1 << WDP2) | (1 << WDP0);
+			break;
+		
+		case WDT_INTERVAL_1024:
+			WDTCR &= ~(1 << WDP0);
+			WDTCR |= (1 << WDP2) | (1 << WDP1);
+			break;
+		
+		case WDT_INTERVAL_2048:
+			WDTCR |= (1 << WDP0) | (1 << WDP1) | (1 << WDP2);
+			break;
+	}
+}
+
+void wdtDisable(void)
+{
+	//Reset the WDT ::
+	wdt_reset();
+	
+	//Enable WD Timer-Off Enable Bit ::
+	WDTCR |= (1 <<WDTOE) | (1 << WDE);
+	
+	//Turn OFF the WDT ::
+	WDTCR = 0x00;
+}
+
+//:: WATCHDOG TIMER FUNCTIONS END ::
 
