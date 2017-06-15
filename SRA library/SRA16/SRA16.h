@@ -7,6 +7,7 @@
 		3) USART	(works with CP2102)
 		4) Motors
 		5) LCD
+		6) Watchdog Timer (TO BE TESTED)
 
 	For more information visit http://sra.vjti.info/
 
